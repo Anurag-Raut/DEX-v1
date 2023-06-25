@@ -6,8 +6,8 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract Exchange is ERC20{
     ERC20 token;
-    constructor(address token) ERC20("LPtoken","LP"){
-        token=ERC20(token);
+    constructor(address tokenAdress) ERC20("LPtoken","LP"){
+        token=ERC20(tokenAdress);
     }
     function getTokenReserve() public view returns(uint256){
         return token.balanceOf(address(this));
@@ -63,6 +63,29 @@ contract Exchange is ERC20{
         return (yamount*99)/100;
     }
 
-   
-   
+    function ethToToken() public payable returns(uint256) {
+        //x->eth y->Token
+        uint ethReserve=address(this).balance-msg.value;
+        uint TokenReserve=getTokenReserve();
+        uint ethDeposited=msg.value;
+        uint TokenToReturn=convert(ethReserve,TokenReserve,ethDeposited);
+        token.transfer(msg.sender,TokenToReturn);
+        return TokenToReturn;
+
+
+    }
+   function tokenToEth(uint tokenDeposited) public  returns (uint256){
+      //x->token y->eth
+        uint ethReserve=address(this).balance;
+        uint TokenReserve=getTokenReserve();
+        uint ethToReturn=convert(TokenReserve,ethReserve,tokenDeposited);
+        token.transferFrom(
+        msg.sender,
+        address(this),
+        tokenDeposited
+    );
+        payable(msg.sender).transfer(ethToReturn);
+        return ethToReturn;
+        
+   }
 }
